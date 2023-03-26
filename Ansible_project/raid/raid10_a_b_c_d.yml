@@ -1,0 +1,69 @@
+---
+# 2 feladatot oldottam meg egyben
+
+
+- name: Creating Raid10
+  hosts: server
+  gather_facts: false
+  vars:
+    directory: /data/speci
+    o: student
+    g: student
+    st: directory
+  tasks:
+  - name: Creating /data/speci directory
+    file:
+      path: "{{ directory }}"
+      state: "{{ st }}"
+      owner: "{{ o }}"
+      group: "{{ g }}"
+
+- name: Creating Raid10
+  hosts: server
+  gather_facts: false
+  roles:
+    - name: redhat.rhel_system_roles.storage
+  vars:
+    storage_safe_mode: false
+    storage_pools:
+      - name: vg
+        type: lvm
+        disks:
+          - /dev/sda
+          - /dev/sdb
+          - /dev/sdc
+          - /dev/sdd
+        raid_level: raid10
+        volumes:
+          - name: lv
+            size: 10G
+            state: present
+    
+- name: Getting uuid of the Raid
+  hosts: server
+  gather_facts: false
+  tasks:
+  - name: Getting the uuid
+    ansible.builtin.command: blkid /dev/mapper/vg-lv -s UUID -o value
+    register: uuid
+
+- name: Mounting with uuid
+  hosts: server
+  gather_facts: false
+  vars:
+    pth: /data/speci
+    type: xfs
+    d: '0'
+    p: '0'
+    op: defaults
+    st: mounted
+  tasks:
+  - name: Mounting raid to fstab
+    ansible.posix.mount:
+      path: "{{ pth }}"
+      src: "UUID={{ uuid['stdout'] }}"
+      fstype: "{{ type }}"
+      opts: "{{ op }}"
+      dump: "{{ d }}"
+      passno: "{{ p }}"
+      state: "{{ st }}"

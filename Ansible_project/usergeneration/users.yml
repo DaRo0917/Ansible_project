@@ -1,0 +1,30 @@
+---
+- name: Creating groups for users
+  hosts: server
+  gather_facts: no
+  become: true
+  vars:
+
+    start: 1
+    num_of_groups_plus_one: 4
+    st: present
+  tasks:
+    - name: Creating groups
+      ansible.builtin.group:
+        name: "group{{ item }}"
+        state: "{{ st }}"
+      loop: "{{ range(start, num_of_groups_plus_one) | list }}"
+
+
+
+- name: Creating users and assigning them in the groups
+  hosts: server
+  gather_facts: no
+  become: true
+
+  roles:
+    - users
+  vars:
+    - g1: "{{ first }}"
+      g2: "{{ second }}"
+      g3: "{{ third }}"

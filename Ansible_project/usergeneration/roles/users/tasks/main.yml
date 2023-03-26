@@ -1,0 +1,12 @@
+---
+# tasks file for user
+  
+  - name: Creating and putting users in groups
+    ansible.builtin.user:
+      user: "user{{ item }}"
+      append: true
+      groups:
+        - "group{{ first }}"
+        - "group{{ second }}"
+        - "group{{ third }}"
+    loop: "{{ range(start,  num_of_users_plus_one) | list }}"

@@ -1,0 +1,36 @@
+---
+- name: Powertools repo download
+  hosts: all
+  gather_facts: false
+  vars:
+
+    repo_n: powertools
+    base_u: https://download.fedoraproject.org/pub/epel/8/Everything/x86_64/
+    gpg: yes
+    e: yes
+    gpg_k: https://download.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-8
+    package: mariadb-common
+    st: present
+    time: 120
+
+  tasks:
+  - name: Downloading the repository
+    ansible.builtin.yum_repository:
+      name: "{{ repo_n }}"
+      description: Powertools Repository
+      baseurl: "{{ base_u }}"
+      gpgcheck: "{{ gpg }}"
+      enabled: "{{ e }}"
+      gpgkey: "{{ gpg_k }}"
+
+  - name: Package install
+    ansible.builtin.yum:
+      name: "{{ package }}"
+      state: "{{ st }}"
+    notify: reboot hosts
+
+  handlers:
+    - name: reboot hosts
+      ansible.builtin.reboot:
+        reboot_timeout: "{{ time }}"
+      
